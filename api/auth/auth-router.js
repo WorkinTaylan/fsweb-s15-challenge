@@ -1,7 +1,19 @@
 const router = require('express').Router();
+const mw=require("../middleware/auth-mw")
+const bcrypt=require("bcryptjs");
+const userModels=require("../models/modelFunctions")
 
-router.post('/register', (req, res) => {
-  res.end('kayıt olmayı ekleyin, lütfen!');
+
+router.post('/register', mw.checkPayload, mw.userNameExist, async (req, res,next) => {
+try {
+  let hashedPassword=bcrypt.hashSync(req.body.password, 8)
+  let model={username:req.body.username, password:hashedPassword}
+  let newUser=await userModels.addNewUser(model)
+  res.status(201).json(newUser)
+} 
+catch (error) {
+  next(error);
+}
   /*
     EKLEYİN
     Uçnoktanın işlevselliğine yardımcı olmak için middlewarelar yazabilirsiniz.
