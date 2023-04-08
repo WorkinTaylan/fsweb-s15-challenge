@@ -41,8 +41,17 @@ catch (error) {
   */
 });
 
-router.post('/login', (req, res) => {
-  res.end('girişi ekleyin, lütfen!');
+router.post('/login',mw.checkPayload, mw.IsPayloadValid, async (req, res,next) => {
+  
+  try {
+    const token=userModels.generateToken(req.user)
+    res.status(200).json({
+      message:`Welcome ${req.user.username}`,
+      token:token
+    })
+  } catch (error) {
+    next(error)
+  }
   /*
     EKLEYİN
     Uçnoktanın işlevselliğine yardımcı olmak için middlewarelar yazabilirsiniz.

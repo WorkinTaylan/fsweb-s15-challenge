@@ -1,4 +1,6 @@
 const userModels=require("../models/modelFunctions")
+const bcrypt=require("bcryptjs")
+
 
 async function checkPayload(req,res,next){
     try {
@@ -23,7 +25,7 @@ async function userNameExist(req,res,next){
     try {
         
         let filteredUserName=await userModels.findByFilter({username:req.body.username}) //findByFilter(req.body.username) kabul etmedi. Filtre metoduna fonks. ya da obje göndermelisin.
-        if(filteredUserName.length>0){
+        if(filteredUserName.length>0){ // !!filteredUsername.length'de çalışıyor.
             next({
                 status:422,
                 message:"Username kullanılıyor"
@@ -37,9 +39,30 @@ async function userNameExist(req,res,next){
     }
 };
 
+async function IsPayloadValid(req,res,next){
+
+try {
+    const userByUserName=await userModels.findByFilter({username:req.body.username})
+    const isValidLogin=userByUserName && userByUserName.length>0 && bcrypt.compareSync(req.body.password, userByUserName[0].password)
+    if(!isValidLogin){
+        next({
+            status:401,
+            message:"Geçersiz giriş"
+        })
+    }
+    else{
+        req.user=userByUserName[0]
+        next()
+    }
+} catch (error) {
+    next(error)
+}
+
+};
 
 
 module.exports={
     checkPayload,
-    userNameExist
+    userNameExist,
+    IsPayloadValid
 }
